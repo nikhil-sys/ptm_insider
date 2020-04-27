@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-deployment
+  labels:
+    app: node
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: node
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 30%  
+  template:
+    metadata:
+      labels:
+        app: node
+    spec:
+      containers:
+      - name: node-js
+        image: nikhilsys/nodeapp_n:3.0
+        workingDir: /root/myapp
+        command: ["node"]
+        args: ["app.js"]
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+#           initialDelaySeconds: 1
+#           periodSeconds: 1
+#           successThreshold: 1
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "1"      
+          limits: 
+            cpu: "2"
+            memory: "6Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node
+spec:
+  selector:
+    app: node
+  ports:
+  - port: 9090
+    targetPort: 3000
+    protocol: TCP
+  type: LoadBalancer
+  
+  
